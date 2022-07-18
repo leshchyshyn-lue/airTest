@@ -1,0 +1,32 @@
+version: '3.3'
+
+services:
+  db:
+    image: mysql:latest
+    container_name: mysql-db2-airs
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=airs
+    ports:
+      - "3306:3306"
+    restart: always
+    volumes:
+      - ./data:/docker-entrypoint-initdb.d
+
+
+  airlanesservice:
+    image: leshchyshynnn/air
+    container_name: test-service-app-airs
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: always
+
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db2:3306/airs?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
