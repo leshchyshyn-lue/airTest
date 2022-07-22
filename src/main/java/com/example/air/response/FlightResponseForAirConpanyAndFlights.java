@@ -1,54 +1,32 @@
-package com.example.air.entity;
+package com.example.air.response;
 
+import com.example.air.entity.AirCompany;
+import com.example.air.entity.Airplane;
 import com.example.air.util.Status;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "flight")
-public class Flight {
+public class FlightResponseForAirConpanyAndFlights {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
-    @Column(name = "status")
     private Status status;
 
-    @Column(name = "departure_country")
     private String departureCountry;
 
-    @Column(name = "destination_country")
     private String destinationCountry;
 
-    @Column(name = "distance")
     private double distance;
 
-    @Column(name = "estimated_flight_time")
     private LocalDateTime estimatedFlightTime;
 
-    @Column(name = "ended_at")
     private LocalDateTime endedAt;
 
-    @Column(name = "delay_started_at")
     private LocalDateTime delayStartedAt;
 
-    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name = "air_company_id")
-    private AirCompany airCompany;
-    @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name = "air_plane_id")
-    private Airplane airplane;
-
-    public Flight() {
+    public FlightResponseForAirConpanyAndFlights() {
 
     }
 
@@ -66,22 +44,6 @@ public class Flight {
 
     public void setStatus(Status status) {
         this.status = status;
-    }
-
-    public AirCompany getAirCompany() {
-        return airCompany;
-    }
-
-    public void setAirCompany(AirCompany airCompany) {
-        this.airCompany = airCompany;
-    }
-
-    public Airplane getAirplane() {
-        return airplane;
-    }
-
-    public void setAirplane(Airplane airplane) {
-        this.airplane = airplane;
     }
 
     public String getDepartureCountry() {
@@ -107,7 +69,6 @@ public class Flight {
     public void setDistance(double distance) {
         this.distance = distance;
     }
-
 
     public LocalDateTime getEstimatedFlightTime() {
         return estimatedFlightTime;

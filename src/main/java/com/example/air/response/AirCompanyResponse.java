@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public class AirCompanyResponse {
     private Long id;
-    private String airCompanyName;
+    private String name;
     private String companyType;
     private LocalDateTime foundedAt;
 
@@ -20,12 +20,12 @@ public class AirCompanyResponse {
         this.id = id;
     }
 
-    public String getAirCompanyName() {
-        return airCompanyName;
+    public String getName() {
+        return name;
     }
 
-    public void setAirCompanyName(String airCompanyName) {
-        this.airCompanyName = airCompanyName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getCompanyType() {

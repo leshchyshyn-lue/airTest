@@ -6,9 +6,10 @@ import com.example.air.entity.Flight;
 import com.example.air.repository.AirCompanyRepository;
 import com.example.air.repository.FlightRepository;
 import com.example.air.service.AirCompanyService;
-import com.example.air.util.AirCompanyNotFoundException;
-import com.example.air.util.AirCompanyWithThisNameAlreadyExists;
-import com.example.air.util.ThisCompanyHasNoFlightsWithThisStatus;
+import com.example.air.exception.AirCompanyNotFoundException;
+import com.example.air.exception.AirCompanyWithThisNameAlreadyExistsException;
+import com.example.air.exception.ThisCompanyHasNoFlightsWithThisStatusException;
+import com.example.air.util.Status;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -49,89 +50,89 @@ public class AirCompanyServiceTest {
     private FlightRepository flightRepository;
 
     @Test
-    public void testFindAll() {
+    public void testFindAllAircompaniesSuccess() {
         AirCompany airCompany = new AirCompany();
 
         List<AirCompany> airCompanyList = new ArrayList<>();
         airCompanyList.add(airCompany);
 
         when(airCompanyRepository.findAll()).thenReturn(airCompanyList);
-        List<AirCompany> result = airCompanyService.findAll();
+        List<AirCompany> result = airCompanyService.findAllAirCompany();
         assertEquals(airCompanyList, result);
     }
 
     @Test
-    public void testFindByIdSuccess() throws AirCompanyNotFoundException {
+    public void testFindAirCompanyByIdSuccess() throws AirCompanyNotFoundException {
         AirCompany airCompany = new AirCompany();
         airCompany.setId(ID);
 
         when(airCompanyRepository.findById(airCompany.getId())).thenReturn(Optional.of(airCompany));
 
-        AirCompany result = airCompanyService.findById(airCompany.getId());
+        AirCompany result = airCompanyService.findAirCompanyById(airCompany.getId());
 
         assertEquals(airCompany, result);
     }
 
     @Test
-    public void testFindByIdFailAirCompanyNotFoundException() {
+    public void testFindAirCompanyByIdFailAirCompanyNotFoundException() {
         AirCompany airCompany = new AirCompany();
         airCompany.setId(ID);
 
         when(airCompanyRepository.findById(airCompany.getId())).thenReturn(Optional.empty());
 
-        assertThrows(AirCompanyNotFoundException.class, () -> airCompanyService.findById(airCompany.getId()));
+        assertThrows(AirCompanyNotFoundException.class, () -> airCompanyService.findAirCompanyById(airCompany.getId()));
     }
 
     @Test
-    public void testSaveAirCompanySuccess() throws AirCompanyWithThisNameAlreadyExists {
+    public void testSaveAirCompanySuccess() throws AirCompanyWithThisNameAlreadyExistsException {
         AirCompany before = new AirCompany();
-        before.setAirCompanyName(AIR_COMPANY_NAME);
+        before.setName(AIR_COMPANY_NAME);
 
         AirCompany after = new AirCompany();
-        after.setAirCompanyName(AIR_COMPANY_NAME);
+        after.setName(AIR_COMPANY_NAME);
         after.setId(ID);
 
         when(airCompanyRepository.save(before)).thenReturn(after);
-        when(airCompanyRepository.findByAirCompanyName(before.getAirCompanyName())).thenReturn(null);
+        when(airCompanyRepository.findByName(before.getName())).thenReturn(null);
 
         AirCompany result = airCompanyService.saveAirCompany(before);
 
         assertEquals(after, result);
-        assertEquals(after.getAirCompanyName(), result.getAirCompanyName());
+        assertEquals(after.getName(), result.getName());
     }
 
     @Test
     public void testSaveAirCompanyFailAirCompanyWithThisNameAlreadyExists() {
         AirCompany airCompany = new AirCompany();
-        airCompany.setAirCompanyName(AIR_COMPANY_NAME);
+        airCompany.setName(AIR_COMPANY_NAME);
 
-        when(airCompanyRepository.findByAirCompanyName(airCompany.getAirCompanyName())).thenReturn(airCompany);
+        when(airCompanyRepository.findByName(airCompany.getName())).thenReturn(airCompany);
 
-        assertThrows(AirCompanyWithThisNameAlreadyExists.class, () -> airCompanyService.saveAirCompany(airCompany));
+        assertThrows(AirCompanyWithThisNameAlreadyExistsException.class, () -> airCompanyService.saveAirCompany(airCompany));
     }
 
     @Test
-    public void testUpdateAirCompanySuccess() throws AirCompanyNotFoundException, AirCompanyWithThisNameAlreadyExists {
+    public void testUpdateAirCompanySuccess() throws AirCompanyNotFoundException, AirCompanyWithThisNameAlreadyExistsException {
         AirCompany before = new AirCompany();
         before.setId(ID);
-        before.setAirCompanyName(AIR_COMPANY_NAME);
+        before.setName(AIR_COMPANY_NAME);
         before.setCompanyType(COMPANY_TYPE);
         before.setFoundedAt(FOUNDED_AT);
 
         AirCompany after = new AirCompany();
         after.setId(ID);
-        after.setAirCompanyName(AIR_COMPANY_NAME);
+        after.setName(AIR_COMPANY_NAME);
         after.setCompanyType(COMPANY_TYPE);
         after.setFoundedAt(FOUNDED_AT);
 
         when(airCompanyRepository.findById(before.getId())).thenReturn(Optional.of(before));
-        when(airCompanyRepository.findByAirCompanyName(before.getAirCompanyName())).thenReturn(null);
+        when(airCompanyRepository.findByName(before.getName())).thenReturn(null);
         when(airCompanyRepository.save(before)).thenReturn(after);
 
         AirCompany result = airCompanyService.updateAirCompany(before, before.getId());
         assertEquals(result.getId(), after.getId());
         assertEquals(result.getCompanyType(), after.getCompanyType());
-        assertEquals(result.getAirCompanyName(), after.getAirCompanyName());
+        assertEquals(result.getName(), after.getName());
         assertEquals(result.getFoundedAt(), after.getFoundedAt());
     }
 
@@ -139,12 +140,12 @@ public class AirCompanyServiceTest {
     public void testUpdateAirCompanyIdFailAirCompanyWithThisNameAlreadyExists() {
         AirCompany airCompany = new AirCompany();
         airCompany.setId(ID);
-        airCompany.setAirCompanyName(AIR_COMPANY_NAME);
+        airCompany.setName(AIR_COMPANY_NAME);
 
         when(airCompanyRepository.findById(airCompany.getId())).thenReturn(Optional.of(airCompany));
-        when(airCompanyRepository.findByAirCompanyName(airCompany.getAirCompanyName())).thenReturn(airCompany);
+        when(airCompanyRepository.findByName(airCompany.getName())).thenReturn(airCompany);
 
-        assertThrows(AirCompanyWithThisNameAlreadyExists.class, () -> airCompanyService.updateAirCompany(airCompany, airCompany.getId()));
+        assertThrows(AirCompanyWithThisNameAlreadyExistsException.class, () -> airCompanyService.updateAirCompany(airCompany, airCompany.getId()));
     }
 
     @Test
@@ -153,44 +154,45 @@ public class AirCompanyServiceTest {
         airCompany.setId(ID);
 
         when(airCompanyRepository.findById(airCompany.getId())).thenReturn(Optional.of(airCompany));
-        assertDoesNotThrow(() -> airCompanyService.deleteById(airCompany.getId()));
+        assertDoesNotThrow(() -> airCompanyService.deleteAirCompanyById(airCompany.getId()));
     }
 
     @Test
-    public void testFindCompanyAndFlightSuccess() throws ThisCompanyHasNoFlightsWithThisStatus, AirCompanyNotFoundException {
+    public void testfindTheCompanyAndItsFlightsByStatusSuccess() {
         List<Flight> flights = new ArrayList<>();
-
+        List<AirCompany> airCompanies = new ArrayList<>();
         AirCompany airCompanyAfter = new AirCompany();
-
+        airCompanies.add(airCompanyAfter);
         Flight flight = new Flight();
         flight.setId(FLIGHT_ID);
         flight.setStatus(Status.PENDING);
-        flight.setAirCompanyId(airCompanyAfter);
+        flight.setAirCompany(airCompanyAfter);
         flights.add(flight);
 
-        airCompanyAfter.setAirCompanyName(AIR_COMPANY_NAME);
+        airCompanyAfter.setName(AIR_COMPANY_NAME);
         airCompanyAfter.setFlightsAirCompany(flights);
 
-        when(flightRepository.findByStatus(flight.getStatus())).thenReturn(flights);
+        when(flightRepository.findByStatusAndByCompanyId(flight.getStatus(), airCompanyAfter)).thenReturn(flights);
 
-        when(airCompanyRepository.findById(airCompanyAfter.getId())).thenReturn(Optional.of(airCompanyAfter));
+        when(airCompanyService.findAllAirCompany()).thenReturn(airCompanies);
 
-        List<AirCompany> result = airCompanyService.findCompanyAndFlight(flight.getStatus());
+        List<AirCompany> result = airCompanyService.findTheCompanyAndItsFlightsByStatus(flight.getStatus());
 
         for (AirCompany a : result) {
-            assertEquals(a.getAirCompanyName(), airCompanyAfter.getAirCompanyName());
+            assertEquals(a.getName(), airCompanyAfter.getName());
             assertArrayEquals(a.getFlightsAirCompany().toArray(), airCompanyAfter.getFlightsAirCompany().toArray());
         }
     }
 
     @Test
-    public void testFindCompanyAndFlightFailThisCompanyHasNoFlightsWithThisStatus() {
-        Flight flight = new Flight();
-        flight.setStatus(Status.ACTIVE);
+    public void testFindByAirCompanyNameFailAirCompanyWithThisNameAlreadyExistsException(){
+        AirCompany airCompany = new AirCompany();
+        airCompany.setId(ID);
+        airCompany.setName(AIR_COMPANY_NAME);
 
-        when(flightRepository.findByStatus(flight.getStatus())).thenReturn(Collections.EMPTY_LIST);
+        when(airCompanyRepository.findByName(airCompany.getName())).thenReturn(airCompany);
 
-        assertThrows(ThisCompanyHasNoFlightsWithThisStatus.class, () -> airCompanyService.findCompanyAndFlight(flight.getStatus()));
+        assertThrows(AirCompanyWithThisNameAlreadyExistsException.class , () -> airCompanyService.findByAirCompanyName(airCompany));
     }
 
 }

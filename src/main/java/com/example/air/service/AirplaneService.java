@@ -3,10 +3,10 @@ package com.example.air.service;
 import com.example.air.entity.AirCompany;
 import com.example.air.entity.Airplane;
 import com.example.air.repository.AirplaneRepository;
-import com.example.air.util.AirCompanyNotFoundException;
-import com.example.air.util.AirplaneNotFoundException;
-import com.example.air.util.AirplaneWithThisNameAlreadyExists;
-import com.example.air.util.AirplaneWithThisSerialNumberAlreadyExists;
+import com.example.air.exception.AirCompanyNotFoundException;
+import com.example.air.exception.AirplaneNotFoundException;
+import com.example.air.exception.AirplaneWithThisNameAlreadyExistsException;
+import com.example.air.exception.AirplaneWithThisSerialNumberAlreadyExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,37 +24,25 @@ public class AirplaneService {
         this.airCompanyService = airCompanyService;
     }
 
-    public List<Airplane> findAll() {
+    public List<Airplane> findAllAirplanes() {
         return airplaneRepository.findAll();
     }
 
-    public Airplane findById(Long id) throws AirplaneNotFoundException {
+    public Airplane findAirplaneById(Long id) throws AirplaneNotFoundException {
         return airplaneRepository.findById(id)
-                .orElseThrow(() -> new AirplaneNotFoundException("No airplane with this ID was found"));
+                .orElseThrow(() -> new AirplaneNotFoundException("No airplane with ID "+ id +" was found"));
     }
 
-    public Airplane saveAirplane(Airplane airplain) throws AirplaneWithThisNameAlreadyExists, AirplaneWithThisSerialNumberAlreadyExists {
-        Airplane byName = airplaneRepository.findByName(airplain.getName());
-        if (byName != null) {
-            throw new AirplaneWithThisNameAlreadyExists("Airplane with this name already exists");
-        }
-        Airplane bySerialNumber = airplaneRepository.findByFactorySerialNumber(airplain.getFactorySerialNumber());
-        if (bySerialNumber != null) {
-            throw new AirplaneWithThisSerialNumberAlreadyExists("Airplane with this serial number already exists");
-        }
+    public Airplane saveAirplane(Airplane airplain) throws AirplaneWithThisNameAlreadyExistsException, AirplaneWithThisSerialNumberAlreadyExistsException {
+        findByAirplaneName(airplain);
+        findBySerialNumber(airplain);
         return airplaneRepository.save(airplain);
     }
 
-    public Airplane updateAirplane(Airplane newAirplane, Long id) throws AirplaneNotFoundException, AirplaneWithThisNameAlreadyExists, AirplaneWithThisSerialNumberAlreadyExists {
-        Airplane oldAirplane = findById(id);
-        Airplane byName = airplaneRepository.findByName(newAirplane.getName());
-        if (byName != null) {
-            throw new AirplaneWithThisNameAlreadyExists("Airplane with this name already exists");
-        }
-        Airplane bySerialNumber = airplaneRepository.findByFactorySerialNumber(newAirplane.getFactorySerialNumber());
-        if (bySerialNumber != null) {
-            throw new AirplaneWithThisSerialNumberAlreadyExists("Airplane with this serial number already exists");
-        }
+    public Airplane updateAirplane(Airplane newAirplane, Long id) throws AirplaneNotFoundException, AirplaneWithThisNameAlreadyExistsException, AirplaneWithThisSerialNumberAlreadyExistsException {
+        Airplane oldAirplane = findAirplaneById(id);
+        findByAirplaneName(newAirplane);
+        findBySerialNumber(newAirplane);
         oldAirplane.setCreatedAt(newAirplane.getCreatedAt());
         oldAirplane.setName(newAirplane.getName());
         oldAirplane.setFlightDistance(newAirplane.getFlightDistance());
@@ -65,18 +53,31 @@ public class AirplaneService {
         return airplaneRepository.save(oldAirplane);
     }
 
-    public void deleteById(Long id) throws AirplaneNotFoundException {
-        findById(id);
+    public void deleteAirplaneById(Long id) throws AirplaneNotFoundException {
+        findAirplaneById(id);
         airplaneRepository.deleteById(id);
     }
 
-    public Airplane changeAirCompanyId(Long airplaneId, Long airCompanyId) throws AirplaneNotFoundException, AirCompanyNotFoundException {
-        Airplane changed = findById(airplaneId);
-        AirCompany airCompany = airCompanyService.findById(airCompanyId);
+    public Airplane changeAirCompanyIdOfTheAirPlane(Long airplaneId, Long airCompanyId) throws AirplaneNotFoundException, AirCompanyNotFoundException {
+        Airplane changed = findAirplaneById(airplaneId);
+        AirCompany airCompany = airCompanyService.findAirCompanyById(airCompanyId);
         if (airCompany == null) {
-            throw new AirCompanyNotFoundException("No air company with this ID was found");
+            throw new AirCompanyNotFoundException("No air company with ID "+ airCompanyId +" was found");
         }
-        changed.setAirCompanyId(airCompany);
+        changed.setAirCompany(airCompany);
         return airplaneRepository.save(changed);
+    }
+
+    public void findByAirplaneName(Airplane airplane) throws AirplaneWithThisNameAlreadyExistsException {
+        Airplane name = airplaneRepository.findByName(airplane.getName());
+        if (name != null) {
+            throw new AirplaneWithThisNameAlreadyExistsException("Airplane with this name already exists");
+        }
+    }
+    public void findBySerialNumber(Airplane airplane) throws AirplaneWithThisSerialNumberAlreadyExistsException {
+        Airplane serialNumber = airplaneRepository.findByFactorySerialNumber(airplane.getFactorySerialNumber());
+        if (serialNumber != null) {
+            throw new AirplaneWithThisSerialNumberAlreadyExistsException("Airplane with this serial number already exists");
+        }
     }
 }

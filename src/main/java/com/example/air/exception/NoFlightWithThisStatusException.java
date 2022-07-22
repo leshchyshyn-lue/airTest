@@ -1,11 +1,12 @@
-package com.example.air.util;
+package com.example.air.exception;
+
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class ThisCompanyHasNoFlightsWithThisStatus extends Exception{
-    public ThisCompanyHasNoFlightsWithThisStatus(String message){
+public class NoFlightWithThisStatusException extends Exception {
+    public NoFlightWithThisStatusException(String message) {
         super(message);
     }
 }

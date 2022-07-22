@@ -39,9 +39,9 @@ public class Airplane {
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "air_company_id")
-    private AirCompany airCompanyId;
+    private AirCompany airCompany;
     @JsonIgnore
-    @OneToMany(mappedBy = "airPlaneId")
+    @OneToMany(mappedBy = "airplane")
     private List<Flight> flightsAirPlane;
 
 
@@ -81,12 +81,12 @@ public class Airplane {
         this.factorySerialNumber = factorySerialNumber;
     }
 
-    public AirCompany getAirCompanyId() {
-        return airCompanyId;
+    public AirCompany getAirCompany() {
+        return airCompany;
     }
 
-    public void setAirCompanyId(AirCompany airCompanyId) {
-        this.airCompanyId = airCompanyId;
+    public void setAirCompany(AirCompany airCompany) {
+        this.airCompany = airCompany;
     }
 
     public Long getNumberOfFlights() {
