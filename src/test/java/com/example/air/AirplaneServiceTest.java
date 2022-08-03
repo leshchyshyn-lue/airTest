@@ -6,10 +6,10 @@ import com.example.air.entity.Airplane;
 import com.example.air.repository.AirplaneRepository;
 import com.example.air.service.AirCompanyService;
 import com.example.air.service.AirplaneService;
-import com.example.air.util.AirCompanyNotFoundException;
-import com.example.air.util.AirplaneNotFoundException;
-import com.example.air.util.AirplaneWithThisNameAlreadyExists;
-import com.example.air.util.AirplaneWithThisSerialNumberAlreadyExists;
+import com.example.air.exception.AirCompanyNotFoundException;
+import com.example.air.exception.AirplaneNotFoundException;
+import com.example.air.exception.AirplaneWithThisNameAlreadyExistsException;
+import com.example.air.exception.AirplaneWithThisSerialNumberAlreadyExistsException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -50,7 +50,7 @@ public class AirplaneServiceTest {
         airplanes.add(airplane);
 
         when(airplaneRepository.findAll()).thenReturn(airplanes);
-        List<Airplane> result = airplaneService.findAll();
+        List<Airplane> result = airplaneService.findAllAirplanes();
 
         assertEquals(airplanes, result);
     }
@@ -62,7 +62,7 @@ public class AirplaneServiceTest {
 
         when(airplaneRepository.findById(airplane.getId())).thenReturn(Optional.of(airplane));
 
-        Airplane result = airplaneService.findById(airplane.getId());
+        Airplane result = airplaneService.findAirplaneById(airplane.getId());
 
         assertEquals(airplane, result);
     }
@@ -74,11 +74,11 @@ public class AirplaneServiceTest {
 
         when(airplaneRepository.findById(airplane.getId())).thenReturn(Optional.empty());
 
-        assertThrows(AirplaneNotFoundException.class, () -> airplaneService.findById(airplane.getId()));
+        assertThrows(AirplaneNotFoundException.class, () -> airplaneService.findAirplaneById(airplane.getId()));
     }
 
     @Test
-    public void saveAirplaneTestSuccess() throws AirplaneWithThisNameAlreadyExists, AirplaneWithThisSerialNumberAlreadyExists {
+    public void saveAirplaneTestSuccess() throws AirplaneWithThisNameAlreadyExistsException, AirplaneWithThisSerialNumberAlreadyExistsException {
         Airplane before = new Airplane();
         before.setName(NAME);
         before.setFactorySerialNumber(FACTORY_SERIAL_NUMBER);
@@ -104,7 +104,7 @@ public class AirplaneServiceTest {
 
         when(airplaneRepository.findByName(airplane.getName())).thenReturn(airplane);
 
-        assertThrows(AirplaneWithThisNameAlreadyExists.class, () -> airplaneService.saveAirplane(airplane));
+        assertThrows(AirplaneWithThisNameAlreadyExistsException.class, () -> airplaneService.saveAirplane(airplane));
     }
 
     @Test
@@ -114,11 +114,11 @@ public class AirplaneServiceTest {
 
         when(airplaneRepository.findByFactorySerialNumber(airplane.getFactorySerialNumber())).thenReturn(airplane);
 
-        assertThrows(AirplaneWithThisSerialNumberAlreadyExists.class, () -> airplaneService.saveAirplane(airplane));
+        assertThrows(AirplaneWithThisSerialNumberAlreadyExistsException.class, () -> airplaneService.saveAirplane(airplane));
     }
 
     @Test
-    public void testUpdateAirplaneSuccess() throws AirplaneWithThisNameAlreadyExists, AirplaneNotFoundException, AirplaneWithThisSerialNumberAlreadyExists {
+    public void testUpdateAirplaneSuccess() throws AirplaneWithThisNameAlreadyExistsException, AirplaneNotFoundException, AirplaneWithThisSerialNumberAlreadyExistsException {
         Airplane before = new Airplane();
         before.setName(NAME);
         before.setId(ID);
@@ -147,7 +147,7 @@ public class AirplaneServiceTest {
         when(airplaneRepository.findById(airplane.getId())).thenReturn(Optional.of(airplane));
         when(airplaneRepository.findByName(airplane.getName())).thenReturn(airplane);
 
-        assertThrows(AirplaneWithThisNameAlreadyExists.class, () -> airplaneService.updateAirplane(airplane, airplane.getId()));
+        assertThrows(AirplaneWithThisNameAlreadyExistsException.class, () -> airplaneService.updateAirplane(airplane, airplane.getId()));
     }
 
     @Test
@@ -158,7 +158,7 @@ public class AirplaneServiceTest {
         when(airplaneRepository.findById(airplane.getId())).thenReturn(Optional.of(airplane));
         when(airplaneRepository.findByFactorySerialNumber(airplane.getFactorySerialNumber())).thenReturn(airplane);
 
-        assertThrows(AirplaneWithThisSerialNumberAlreadyExists.class, () -> airplaneService.updateAirplane(airplane, airplane.getId()));
+        assertThrows(AirplaneWithThisSerialNumberAlreadyExistsException.class, () -> airplaneService.updateAirplane(airplane, airplane.getId()));
     }
 
     @Test
@@ -167,7 +167,7 @@ public class AirplaneServiceTest {
         airplane.setId(ID);
 
         when(airplaneRepository.findById(airplane.getId())).thenReturn(Optional.of(airplane));
-        assertDoesNotThrow(() -> airplaneService.deleteById(airplane.getId()));
+        assertDoesNotThrow(() -> airplaneService.deleteAirplaneById(airplane.getId()));
     }
 
     @Test
@@ -180,13 +180,13 @@ public class AirplaneServiceTest {
 
         Airplane after = new Airplane();
         after.setId(ID);
-        after.setAirCompanyId(airCompany);
+        after.setAirCompany(airCompany);
 
         when(airplaneRepository.findById(before.getId())).thenReturn(Optional.of(before));
-        when(airCompanyService.findById(airCompany.getId())).thenReturn(airCompany);
+        when(airCompanyService.findAirCompanyById(airCompany.getId())).thenReturn(airCompany);
         when(airplaneRepository.save(before)).thenReturn(after);
 
-        Airplane result = airplaneService.changeAirCompanyId(before.getId(), airCompany.getId());
+        Airplane result = airplaneService.changeAirCompanyIdOfTheAirPlane(before.getId(), airCompany.getId());
 
         assertEquals(result, after);
     }
@@ -198,12 +198,12 @@ public class AirplaneServiceTest {
 
         Airplane airplane = new Airplane();
         airCompany.setId(ID);
-        airplane.setAirCompanyId(airCompany);
+        airplane.setAirCompany(airCompany);
 
         when(airplaneRepository.findById(airplane.getId())).thenReturn(Optional.of(airplane));
-        when(airCompanyService.findById(airCompany.getId())).thenReturn(null);
+        when(airCompanyService.findAirCompanyById(airCompany.getId())).thenReturn(null);
 
-        assertThrows(AirCompanyNotFoundException.class, () -> airplaneService.changeAirCompanyId(airplane.getId(), airCompany.getId()));
+        assertThrows(AirCompanyNotFoundException.class, () -> airplaneService.changeAirCompanyIdOfTheAirPlane(airplane.getId(), airCompany.getId()));
     }
 
 

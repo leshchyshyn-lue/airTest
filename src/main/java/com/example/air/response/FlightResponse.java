@@ -1,6 +1,6 @@
 package com.example.air.response;
 
-import com.example.air.Status;
+import com.example.air.util.Status;
 import com.example.air.entity.AirCompany;
 import com.example.air.entity.Airplane;
 

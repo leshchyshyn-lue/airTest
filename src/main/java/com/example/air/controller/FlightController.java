@@ -1,14 +1,14 @@
 package com.example.air.controller;
 
 
-import com.example.air.Status;
+import com.example.air.util.Status;
 import com.example.air.entity.Flight;
 import com.example.air.request.FlightRequest;
 import com.example.air.response.FlightResponse;
 import com.example.air.service.FlightService;
-import com.example.air.util.FlightNotFoundException;
-import com.example.air.util.NoFlightWithThisStatus;
-import com.example.air.util.NoOneFlightNow;
+import com.example.air.exception.FlightNotFoundException;
+import com.example.air.exception.NoFlightWithThisStatusException;
+import com.example.air.exception.NoOneFlightNowException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/flight")
+@RequestMapping("/flights")
 public class FlightController {
 
     private final FlightService flightService;
@@ -53,19 +53,19 @@ public class FlightController {
         flightResponse.setDepartureCountry(flight.getDepartureCountry());
         flightResponse.setDestinationCountry(flight.getDestinationCountry());
         flightResponse.setEndedAt(flight.getEndedAt());
-        flightResponse.setAirCompanyId(flight.getAirCompanyId());
-        flightResponse.setAirPlaneId(flight.getAirPlaneId());
+        flightResponse.setAirCompanyId(flight.getAirCompany());
+        flightResponse.setAirPlaneId(flight.getAirplane());
         return flightResponse;
     }
 
     @GetMapping
-    public ResponseEntity<List<Flight>> findAll() throws NoOneFlightNow {
-        return ResponseEntity.status(HttpStatus.OK).body(flightService.findAll());
+    public ResponseEntity<List<Flight>> findAllFlights() throws NoOneFlightNowException {
+        return ResponseEntity.status(HttpStatus.OK).body(flightService.findAllFlights());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Flight> findById(@PathVariable("id") Long id) throws FlightNotFoundException {
-        return ResponseEntity.status(HttpStatus.OK).body(flightService.findById(id));
+    public ResponseEntity<Flight> findFlightById(@PathVariable("id") Long id) throws FlightNotFoundException {
+        return ResponseEntity.status(HttpStatus.OK).body(flightService.findFlightById(id));
     }
 
     @PostMapping
@@ -74,7 +74,7 @@ public class FlightController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<FlightResponse> updateFlight(@RequestBody FlightRequest request,
                                                        @PathVariable("id") Long id) throws FlightNotFoundException {
         FlightResponse response = convertToResponse(flightService.updateFlight(convertToFlight(request), id));
@@ -82,23 +82,23 @@ public class FlightController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteById(@PathVariable("id") Long id) throws FlightNotFoundException {
-        flightService.deleteById(id);
+    public void deleteFlightById(@PathVariable("id") Long id) throws FlightNotFoundException {
+        flightService.deleteFlightById(id);
     }
 
-    @PutMapping("/{status}/change/{id}")
-    public ResponseEntity<Flight> changeStatus(@PathVariable("status") Status status, @PathVariable("id") Long id) throws FlightNotFoundException {
-        return ResponseEntity.status(HttpStatus.OK).body(flightService.changeStatus(status, id));
+    @PutMapping("/{status}/{id}")
+    public ResponseEntity<Flight> changeFlightStatus(@PathVariable("status") Status status, @PathVariable("id") Long id) throws FlightNotFoundException {
+        return ResponseEntity.status(HttpStatus.OK).body(flightService.changeFlightStatus(status, id));
     }
 
-    @GetMapping("/findFlightActive")
-    public ResponseEntity<List<Flight>> findFlightActive() throws NoFlightWithThisStatus {
-        return ResponseEntity.status(HttpStatus.OK).body(flightService.findFlightActive());
+    @GetMapping("/active")
+    public ResponseEntity<List<Flight>> findFlightActive() throws NoFlightWithThisStatusException {
+        return ResponseEntity.status(HttpStatus.OK).body(flightService.findFlightsWithStatusActive());
     }
 
-    @GetMapping("/findWithComplate")
-    public ResponseEntity<List<Flight>> findAllWithStatusComplete() throws NoFlightWithThisStatus {
-        return ResponseEntity.status(HttpStatus.OK).body(flightService.findAllWithStatusComplete());
+    @GetMapping("/complate")
+    public ResponseEntity<List<Flight>> findAllFlightWithStatusComplete() throws NoFlightWithThisStatusException {
+        return ResponseEntity.status(HttpStatus.OK).body(flightService.findAllFlightsWithStatusComplete());
     }
 
 }

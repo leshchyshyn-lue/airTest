@@ -18,7 +18,7 @@ public class AirCompany {
     private Long id;
 
     @Column(name = "air_company_name")
-    private String airCompanyName;
+    private String name;
 
     @Column(name = "company_type")
     private String companyType;
@@ -27,11 +27,11 @@ public class AirCompany {
     private LocalDateTime foundedAt;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "airCompanyId")
+    @OneToMany(mappedBy = "airCompany")
     private List<Airplane> airplanes;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "airCompanyId")
+    @OneToMany(mappedBy = "airCompany")
     private List<Flight> flightsAirCompany;
 
 
@@ -63,12 +63,12 @@ public class AirCompany {
         this.id = id;
     }
 
-    public String getAirCompanyName() {
-        return airCompanyName;
+    public String getName() {
+        return name;
     }
 
-    public void setAirCompanyName(String airCompanyName) {
-        this.airCompanyName = airCompanyName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getCompanyType() {

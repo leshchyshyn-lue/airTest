@@ -1,11 +1,11 @@
 package com.example.air.service;
 
-import com.example.air.Status;
+import com.example.air.util.Status;
 import com.example.air.entity.Flight;
 import com.example.air.repository.FlightRepository;
-import com.example.air.util.FlightNotFoundException;
-import com.example.air.util.NoFlightWithThisStatus;
-import com.example.air.util.NoOneFlightNow;
+import com.example.air.exception.FlightNotFoundException;
+import com.example.air.exception.NoFlightWithThisStatusException;
+import com.example.air.exception.NoOneFlightNowException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,18 +21,18 @@ public class FlightService {
         this.flightRepository = flightRepository;
     }
 
-    public List<Flight> findAll() throws NoOneFlightNow {
+    public List<Flight> findAllFlights() throws NoOneFlightNowException {
         List<Flight> flights = flightRepository.findAll();
         if (flights.isEmpty()) {
-            throw new NoOneFlightNow("No one flight now");
+            throw new NoOneFlightNowException("No one flight now");
         }
         return flights;
 
     }
 
-    public Flight findById(Long id) throws FlightNotFoundException {
+    public Flight findFlightById(Long id) throws FlightNotFoundException {
         return flightRepository.findById(id)
-                .orElseThrow(() -> new FlightNotFoundException("No flight with this ID was found"));
+                .orElseThrow(() -> new FlightNotFoundException("No flight with ID "+ id +" was found"));
     }
 
     public Flight saveFlight(Flight flight) {
@@ -41,7 +41,7 @@ public class FlightService {
     }
 
     public Flight updateFlight(Flight newFlight, Long id) throws FlightNotFoundException {
-        Flight oldFlight = findById(id);
+        Flight oldFlight = findFlightById(id);
         oldFlight.setCreatedAt(newFlight.getCreatedAt());
         oldFlight.setEstimatedFlightTime(newFlight.getEstimatedFlightTime());
         oldFlight.setDistance(newFlight.getDistance());
@@ -53,13 +53,13 @@ public class FlightService {
         return flightRepository.save(oldFlight);
     }
 
-    public void deleteById(Long id) throws FlightNotFoundException {
-        findById(id);
+    public void deleteFlightById(Long id) throws FlightNotFoundException {
+        findFlightById(id);
         flightRepository.deleteById(id);
     }
 
-    public Flight changeStatus(Status status, Long id) throws FlightNotFoundException {
-        Flight flightFind = findById(id);
+    public Flight changeFlightStatus(Status status, Long id) throws FlightNotFoundException {
+        Flight flightFind = findFlightById(id);
         flightFind.setStatus(status);
         if (status.equals(Status.DELAYED)) {
             flightFind.setDelayStartedAt(LocalDateTime.now());
@@ -69,20 +69,22 @@ public class FlightService {
         return flightRepository.save(flightFind);
     }
 
-    public List<Flight> findFlightActive() throws NoFlightWithThisStatus {
-        List<Flight> byStatus = flightRepository.findFlightActive(Status.ACTIVE);
-        if (byStatus.isEmpty()) {
-            throw new NoFlightWithThisStatus("No flight with this status");
-        }
-        return byStatus;
+    public List<Flight> findFlightsWithStatusActive() throws NoFlightWithThisStatusException {
+        List<Flight> flights = flightRepository.findFlightsWithStatusActive(Status.ACTIVE);
+        checkingIfEmpty(flights);
+        return flights;
     }
 
-    public List<Flight> findAllWithStatusComplete() throws NoFlightWithThisStatus {
-        List<Flight> flights = flightRepository.findAllWithStatusComplete(Status.COMPLETED);
-        if (flights.isEmpty()) {
-            throw new NoFlightWithThisStatus("No flight with status" + "COMPLETE");
-        }
+    public List<Flight> findAllFlightsWithStatusComplete() throws NoFlightWithThisStatusException {
+        List<Flight> flights = flightRepository.findAllFlightsWithStatusComplete(Status.COMPLETED);
+        checkingIfEmpty(flights);
         return flights;
+    }
+
+    public void checkingIfEmpty(List<Flight> flights) throws NoFlightWithThisStatusException {
+        if (flights.isEmpty()) {
+            throw new NoFlightWithThisStatusException("No flight with this status");
+        }
     }
 
 
